@@ -25,6 +25,13 @@ whz<-read_csv("C:\\Users\\afossa\\Brown Dropbox\\Alan Fossa\\Data Re-Organizatio
     across(contains("whz_any"),factor)
   )
 
+whz$pmiss<-whz %>% 
+  select(contains("whz_any")) %>% 
+  apply(MARGIN=1,FUN=function(x){sum(is.na(x))/ncol(.)})
+
+whz_small<-whz %>% 
+  dplyr::filter(pmiss<0.5)
+
 #Sequence index plot----
 
 ##Set state alphabet,labels, and colors----
@@ -38,7 +45,7 @@ missing<-"beige"
 
 ##Define sequences----
 whz_seq <- seqdef(
-  whz, # Select data   
+  whz_small, # Select data   
   var = 2:15, # Columns containing the sequences
   alphabet = state_alphabet,
   labels = state_labels,
