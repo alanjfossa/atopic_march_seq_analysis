@@ -21,6 +21,9 @@ setwd("C:\\Users\\afossa\\OneDrive\\repos\\atopic_march_seq_analysis")
 #Load in asthma/allergy outcomes data----
 atopy<-read_csv("C:\\Users\\afossa\\Brown Dropbox\\Alan Fossa\\Data Re-Organization 2024\\Clean Data\\ALL_ECZ_WHZ.csv") 
 
+#Define missingness threshold----
+miss_thresh<-0.25
+
 ##Wheeze (any)----
 whz<-atopy %>% 
   select(participant_id,contains("whz_any")) %>% 
@@ -32,6 +35,10 @@ whz<-atopy %>%
 whz$pmiss<-whz %>% 
   select(contains("whz_any")) %>% 
   apply(MARGIN=1,FUN=function(x){sum(is.na(x))/ncol(.)})
+
+whz<-whz %>% 
+  dplyr::filter(pmiss<miss_thresh) %>% 
+  select(-pmiss)
 
 ##Eczema----
 derm<-atopy %>% 
@@ -46,16 +53,23 @@ derm$pmiss<-derm %>%
   apply(MARGIN=1,FUN=function(x){sum(is.na(x))/ncol(.)})
 
 derm<-derm %>% 
-  dplyr::filter(pmiss==0) %>% 
+  dplyr::filter(pmiss<miss_thresh) %>% 
   select(-pmiss)
 
 ##Rhinitis----
 allergy<-atopy %>% 
   select(participant_id,contains("allergy"),-food_allergy_P4) %>% 
   mutate(
-    across(contains("eczema"),factor)
+    across(contains("allergy"),factor)
   ) %>% 
   select(sort(names(.)))
+
+allergy$pmiss<-allergy %>% 
+  select(contains("allergy")) %>% 
+  apply(MARGIN=1,FUN=function(x){sum(is.na(x))/ncol(.)})
+
+allergy<-allergy %>% 
+  dplyr::filter(pmiss<miss_thresh)
 
 #Sequence index plots----
 
@@ -91,7 +105,7 @@ seqIplot(whz_seq,
          sortv = "from.start",   # Sequence object
          with.legend = "right", # Display legend on right side of plot
          cex.legend = 0.6,  # Change size of legend
-         main = "Sequence Index Plot", # Plot title
+         main = "Wheezing Sequence Index Plot", # Plot title
          xlab = "Age (months)"
          ) 
 
@@ -124,7 +138,7 @@ seqIplot(derm_seq,
          sortv = "from.start",   # Sequence object
          with.legend = "right", # Display legend on right side of plot
          cex.legend = 0.6,  # Change size of legend
-         main = "Sequence Index Plot", # Plot title
+         main = "Eczema Sequence Index Plot", # Plot title
          xlab = "Age (months)"
 ) 
 
@@ -157,7 +171,7 @@ seqIplot(allergy_seq,
          sortv = "from.start",   # Sequence object
          with.legend = "right", # Display legend on right side of plot
          cex.legend = 0.6,  # Change size of legend
-         main = "Sequence Index Plot", # Plot title
+         main = "Rhinitis Sequence Index Plot", # Plot title
          xlab = "Age (months)"
 ) 
 
@@ -173,17 +187,16 @@ derm_cost_matrix
 ###Get costs----
 ####Optimal matching method----
 derm_dist <- seqdist(derm_seq,
-                   method = "OM",
-                   indel= 1.0,
+                   method = "HAM",
                    sm = derm_cost_matrix)
 
 ###Get clusters----
 ####PAM method----
-derm_pamRange <- wcKMedRange(derm_dist, kvals=2:4) # this takes a while to run
-summary(derm_pamRange, max.rank=4)
+derm_pamRange <- wcKMedRange(derm_dist, kvals=2:6) # this takes a while to run
+summary(derm_pamRange, max.rank=6)
 
 #Plot metrics
-plot(derm_pamRange, stat = c("ASW","HC"), norm="zscore", lwd = 2, cex=2, col = c('#6666ff', '#cc0000'), legendpos = "topright", main = "OM PAM Quality")
+plot(derm_pamRange, stat = c("ASW","HC"), norm="zscore", lwd = 2, cex=2, col = c('#6666ff', '#cc0000'), legendpos = "topright", main = "HAM PAM Quality")
 abline(v=7, col="#666666", lty="longdash", lwd = 2)
 
 ####Choose number of clusters----
