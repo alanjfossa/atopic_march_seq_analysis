@@ -207,3 +207,62 @@ derm$clust4 <- wcKMedoids(derm_dist, k=4, cluster.only=TRUE)
 
 ####Modal plot----
 derm_modal <- seqmsplot(derm_seq, group=derm_clust4, border=NA) #index plots by cluster
+
+##Wheeze----
+###Cost matrix----
+whz_cost_matrix <- seqsubm(whz_seq,  # Sequence object
+                            method = "TRATE",  # Method to determine costs
+                            time.varying = FALSE) # Does not allow the cost to vary over time)
+whz_cost_matrix
+
+###Get costs----
+####Optimal matching method----
+whz_dist <- seqdist(whz_seq,
+                     method = "HAM",
+                     sm = whz_cost_matrix)
+
+###Get clusters----
+####PAM method----
+whz_pamRange <- wcKMedRange(whz_dist, kvals=2:6) # this takes a while to run
+summary(whz_pamRange, max.rank=6)
+
+#Plot metrics
+plot(whz_pamRange, stat = c("ASW","HC"), norm="zscore", lwd = 2, cex=2, col = c('#6666ff', '#cc0000'), legendpos = "topright", main = "HAM PAM Quality")
+abline(v=7, col="#666666", lty="longdash", lwd = 2)
+
+####Choose number of clusters----
+whz_clust2 <- wcKMedoids(whz_dist, k=2, cluster.only=TRUE)
+whz$clust2 <- wcKMedoids(whz_dist, k=2, cluster.only=TRUE)
+
+####Modal plot----
+whz_modal <- seqmsplot(whz_seq, group=whz_clust2, border=NA) #index plots by cluster
+
+##Rhinitis----
+###Cost matrix----
+allergy_cost_matrix <- seqsubm(allergy_seq,  # Sequence object
+                               method = "TRATE",  # Method to determine costs
+                               time.varying = FALSE) # Does not allow the cost to vary over time)
+allergy_cost_matrix
+
+###Get costs----
+####Optimal matching method----
+allergy_dist <- seqdist(allergy_seq,
+                        method = "HAM",
+                        sm = allergy_cost_matrix)
+
+###Get clusters----
+####PAM method----
+allergy_pamRange <- wcKMedRange(allergy_dist, kvals=2:6) # this takes a while to run
+summary(allergy_pamRange, max.rank=6)
+
+#Plot metrics
+plot(allergy_pamRange, stat = c("ASW","HC"), norm="zscore", lwd = 2, cex=2, col = c('#6666ff', '#cc0000'), legendpos = "topright", main = "HAM PAM Quality")
+abline(v=7, col="#666666", lty="longdash", lwd = 2)
+
+####Choose number of clusters----
+allergy_clust3 <- wcKMedoids(allergy_dist, k=4, cluster.only=TRUE)
+whz$clust3 <- wcKMedoids(allergy_dist, k=4, cluster.only=TRUE)
+
+####Modal plot----
+allergy_modal <- seqmsplot(allergy_seq, group=allergy_clust3, border=NA) #index plots by cluster
+
